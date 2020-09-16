@@ -9,7 +9,7 @@
 /home/sparky/Desktop/blackjack/main.cpp
 iostream
 -
-random
+string
 -
 cstdlib
 -
