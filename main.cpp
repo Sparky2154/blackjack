@@ -7,13 +7,13 @@ using namespace std;
 
 
 struct Deck{
-    short content[52] = {0};
+    int content[52] = {0};
 
 private:
-    short partition(short low, short high){
-        short i = low-1;
-        short hold;
-        for (short j = low; j <= high-1; ++j) {
+    int partition(int low, int high){
+        int i = low-1;
+        int hold;
+        for (int j = low; j <= high-1; ++j) {
             if (rand()%2 == 1){
                 i++;
                 hold = content[i];
@@ -24,11 +24,11 @@ private:
         hold = content[i + 1];
         content[i + 1] = content[high];
         content[high] = hold;
-        return (short)(i + 1);
+        return i + 1;
     }
 
-    void quickShuffle(short low, short high){
-        short index;
+    void quickShuffle(int low, int high){
+        int index;
         if(low < high){
             index = partition(low, high);
             quickShuffle(low, index-1);
@@ -49,15 +49,15 @@ public:
 
 
 class Hand {
-    short value = 0;
-    short length = 0;
+    int value = 0;
+    int length = 0;
 
 public:
-    short content[11] = {0};
-    short checkValue() {
-        short aces = 0;
+    int content[11] = {0};
+    int checkValue() {
+        int aces = 0;
         for (int i = 0; i < length; ++i) {
-            short mod = (content[i])%13;
+            int mod = (content[i])%13;
             if (mod<9){
                 value += mod;
             } else if(mod<12){
@@ -77,13 +77,13 @@ public:
             std::cout << content[i+1] << " ";
         }
     }
-    void addCardToHand(Deck* deck, short* currentCard){
+    void addCardToHand(Deck* deck, int* currentCard){
         content[length] = deck->content[*currentCard];
         (*currentCard)++;
     }
 };
 
-short game(Deck* deck, short currentCard){
+int game(Deck* deck, int currentCard){
     string reply;
     bool hit = true;
 
@@ -138,7 +138,7 @@ int main() {
     }
     std::cout << "\n";
 
-    short currentCard = 0;
+    int currentCard = 0;
     while (currentCard != -1){
         currentCard = game(&deck, currentCard);
     }
