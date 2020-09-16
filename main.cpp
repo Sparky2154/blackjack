@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
+#include <random>
+#include <zconf.h>
 
 using namespace std;
 
@@ -14,7 +16,7 @@ class Deck{
         int i = low-1;
         int hold;
         for (int j = low; j <= high-1; ++j) {
-            if (rand()%2 == 1){
+            if (random()%2 == 1){
                 i++;
                 hold = content[i];
                 content[i] = content[j];
@@ -28,11 +30,11 @@ class Deck{
     }
 
     void quickShuffle(int low, int high){
-        int index;
+        int ind;
         if(low < high){
-            index = partition(low, high);
-            quickShuffle(low, index-1);
-            quickShuffle(index+1, high);
+            ind = partition(low, high);
+            quickShuffle(low, ind-1);
+            quickShuffle(ind+1, high);
         }
     }
 
@@ -50,7 +52,7 @@ public:
         index++;
         return content[index];
     }
-    int getIndex(){
+    int getIndex() const{
         return index;
     }
 };
@@ -65,10 +67,10 @@ public:
         int aces = 0;
         int value = 0;
         for (int i = 0; i < length; ++i) {
-            int mod = (content[i])%13;
-            if (mod<9){
+            int mod = ((content[i])%13)+2;
+            if (mod<=10){
                 value += mod;
-            } else if(mod<12){
+            } else if(mod<14){
                 value += 10;
             } else{
                 value += 11;
@@ -80,67 +82,127 @@ public:
         }
         return value;
     }
-    void printHand(){
-        for (int i = 0; i <= content[0]; ++i) {
-            std::cout << content[i+1] << " ";
+    void printCard(int number){
+        if(number < 11){
+            std::cout << number;
+        } else if(number < 2){
+            std::cout << "Bad card number 1";
+        } else {
+
+            switch (number) {
+                case 11:
+                    std::cout << "J";
+                    break;
+                case 12:
+                    std::cout << "Q";
+                    break;
+                case 13:
+                    std::cout << "K";
+                    break;
+                case 14:
+                    std::cout << "A";
+                    break;
+                default:
+                    std::cout << "Bad card number 2";
+            }
         }
+    }
+    void printHand(){
+        for (int i = 0; i < length; ++i) {
+            printCard((((content[i])%13)+2));
+            std::cout << " ";
+        }
+        std::cout << '\n';
+    }
+    void printDealer(){
+        std::cout << ((content[0])%13)+2 << " *" << '\n';
     }
     void addCardToHand(int card){
         content[length] = card;
         length++;
     }
+    void resetHand(){
+        length = 0;
+    }
 };
 
 void game(Deck* deck){
     string reply;
-    bool hit = true;
 
-    Hand* dealerCards = (Hand*)malloc(sizeof(Hand)*11);
-    Hand* playerCards = (Hand*)malloc(sizeof(Hand)*11);
+    Hand* dealerCards = (Hand*)malloc(sizeof(Hand));
+    Hand* playerCards = (Hand*)malloc(sizeof(Hand));
 
     while (deck->getIndex() < 26){
         std::cout << "Dealer: ";
         dealerCards->addCardToHand(deck->getCard());
         dealerCards->addCardToHand(deck->getCard());
-        dealerCards->printHand();
+        dealerCards->printDealer();
 
 
         std::cout << "Player: ";
         playerCards->addCardToHand(deck->getCard());
         playerCards->addCardToHand(deck->getCard());
         playerCards->printHand();
+        std::cout << "\n";
 
-        if (dealerCards->checkValue() == 21){
+        if(playerCards->checkValue() == 21){
+            std::cout << "You got blackjack!";
+            return;
+        } else if (dealerCards->checkValue() == 21){
             std::cout << "Dealer has Blackjack";
             return;
         }
 
-        while (hit) {
-            while (!(reply == "s" || reply == "h")){
-                std::cout << "Hit or stay? (h/s)\n";
-                cin >> reply;
-                if(reply[0] == 'h' || reply[0] == 'H'){
-                    hit = true;
-                } else if(reply[0] == 's' || reply[0] == 'S'){
-                    hit = false;
-                    break;
-                } else{
-                    hit = true;
-                    std::cout << "Invalid entry\n";
-                    continue;
-                }
+        while (playerCards->checkValue() < 21) {
+            reply = "";
+            std::cout << "Hit or stay? (h/s)\n";
+            cin >> reply;
+            if(reply[0] == 'h' || reply[0] == 'H'){
+                playerCards->addCardToHand(deck->getCard());
+                std::cout << "Player: ";
+                playerCards->printHand();
+            } else if(reply[0] == 's' || reply[0] == 'S'){
+                break;
+            } else{
+                std::cout << "Invalid entry\n";
             }
-            playerCards->addCardToHand(deck->getCard());
         }
+        while (dealerCards->checkValue() < 16){
+            dealerCards->addCardToHand(deck->getCard());
+        }
+
+        int dealerValue = dealerCards->checkValue();
+        int playerValue = playerCards->checkValue();
+
+        std::cout << "\nDealer: ";
+        dealerCards->printHand();
+        std::cout << "Player: ";
+        playerCards->printHand();
+
+        if(playerValue > 21){
+            std::cout << "You bust\n";
+        }else if(dealerValue > 21){
+            std::cout << "Dealer Busts\n";
+        }else if (playerValue > dealerValue){
+            std::cout << "You win!\n";
+        } else if(playerValue < dealerValue){
+            std::cout << "Dealer wins.\n";
+        }else if(playerValue == dealerValue){
+            std::cout << "Push\n";
+        }else{
+            std::cout << "Something is wrong*********************************************************************";
+            playerCards->printHand();
+            dealerCards->printHand();
+        }
+        sleep(1);
+        playerCards->resetHand();
+        dealerCards->resetHand();
+
+        std::cout << "*********************************************************************\n";
     }
-
-    while (dealerCards->checkValue() < 16){
-        dealerCards->addCardToHand(deck->getCard());
-    }
-
-    int dealerValue = dealerCards->checkValue();
-    int playerValue = playerCards->checkValue();
-
+    std::cout << "\n\n\n";
+    free(dealerCards);
+    free(playerCards);
 }
 
 int main() {
@@ -153,16 +215,23 @@ int main() {
 
     bool cont = true;
     string reply;
+    bool badInput = false;
     while (cont){
         game(&deck);
-        std::cout << "Play again? (y/n)";
-        std::cin >> reply;
-        if(reply[0] == 'y' || reply[0] == 'Y'){
-            cont = true;
-        } else if (reply[0] == 'n' || reply[0] == 'N'){
-            cont = false;
-        }
+        do {
+            badInput = false;
+            std::cout << "Play again? (y/n)";
+            std::cin >> reply;
+            if (reply[0] == 'y' || reply[0] == 'Y') {
+                deck.shuffle();
+            } else if (reply[0] == 'n' || reply[0] == 'N') {
+                cont = false;
+            } else{
+                std::cout << "Bad input";
+                badInput = true;
+            }
+        }while (badInput);
     }
-
+    free(deckPointer);
     return 0;
 }

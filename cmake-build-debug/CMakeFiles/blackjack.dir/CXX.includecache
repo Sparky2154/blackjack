@@ -13,4 +13,8 @@ string
 -
 cstdlib
 -
+random
+-
+zconf.h
+-
 
