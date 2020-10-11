@@ -6,7 +6,11 @@
 
 using namespace std;
 
-
+/**
+ @author Spencer Valentine
+ @section DESCRIPTION
+A small blackjack game I made for fun
+ */
 
 class Deck{
     int content[52] = {0};
@@ -39,19 +43,23 @@ class Deck{
     }
 
 public:
+    Deck(){
+        for (int i = 0; i < 52; ++i) {
+            content[i] = i;
+        }
+        shuffle();
+    }
+
     void shuffle(){
         quickShuffle(0, 51);
         index = -1;
     }
-    void createDeck(){
-        for (int i = 0; i < 52; ++i) {
-            content[i] = i;
-        }
-    }
+
     int getCard(){
         index++;
         return content[index];
     }
+
     int getIndex() const{
         return index;
     }
@@ -82,7 +90,8 @@ public:
         }
         return value;
     }
-    void printCard(int number){
+
+    static void printCard(int number){
         if(number < 11){
             std::cout << number;
         } else if(number < 2){
@@ -207,15 +216,11 @@ void game(Deck* deck){
 
 int main() {
 
-    Deck* deckPointer = (Deck*)malloc(sizeof(Deck));
-    Deck deck = *deckPointer;
-    deck.createDeck();
-
-    deck.shuffle();
-
+    Deck deck = Deck();
     bool cont = true;
     string reply;
     bool badInput = false;
+
     while (cont){
         game(&deck);
         do {
@@ -232,6 +237,5 @@ int main() {
             }
         }while (badInput);
     }
-    free(deckPointer);
     return 0;
 }
