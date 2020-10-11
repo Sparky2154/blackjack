@@ -13,9 +13,15 @@ A small blackjack game I made for fun
  */
 
 class Deck{
-    int content[52] = {0};
-    int index = -2;
+    int content[52] = {0}; //The content of the deck
+    int index = -2; //The current position in the deck
 
+    /**
+     * part of the quicksort algorithm remade for shuffling
+     * @param low is the index of the first number the section of content that is being shuffled
+     * @param high is the index of the last number the section of content that is being shuffled
+     * @return the index of the partition
+     */
     int partition(int low, int high){
         int i = low-1;
         int hold;
@@ -33,6 +39,11 @@ class Deck{
         return i + 1;
     }
 
+    /**
+     * The main part of the quicksort algorithm
+     * @param low is the beginning of the section of content that needs to be shuffled
+     * @param high is the end of the section of content that needs to be shuffled
+     */
     void quickShuffle(int low, int high){
         int ind;
         if(low < high){
@@ -43,6 +54,9 @@ class Deck{
     }
 
 public:
+    /**
+     * The constructor that sets the beginning values of content and calls shuffle
+     */
     Deck(){
         for (int i = 0; i < 52; ++i) {
             content[i] = i;
@@ -50,16 +64,25 @@ public:
         shuffle();
     }
 
+    /**
+     * Shuffles the deck using the quicksort algorithm
+     */
     void shuffle(){
         quickShuffle(0, 51);
         index = -1;
     }
 
+    /**
+     * @return the ID of the next card in the list
+     */
     int getCard(){
         index++;
         return content[index];
     }
 
+    /**
+     * @return the index of the previous card issued from the deck
+     */
     int getIndex() const{
         return index;
     }
@@ -67,10 +90,13 @@ public:
 
 
 class Hand {
-    int length = 0;
-    int content[11] = {0};
+    int length = 0; //Number of cards in hand
+    int content[11] = {0}; //Cards in hand; 11 is the maximum possible before bust
 
 public:
+    /**
+     * @return Value of the hand
+     */
     int checkValue() {
         int aces = 0;
         int value = 0;
@@ -91,6 +117,10 @@ public:
         return value;
     }
 
+    /**
+     * Prints the label of the card that the number refers to
+     * @param number ID of the card
+     */
     static void printCard(int number){
         if(number < 11){
             std::cout << number;
@@ -116,6 +146,10 @@ public:
             }
         }
     }
+
+    /**
+     * Prints the whole hand
+     */
     void printHand(){
         for (int i = 0; i < length; ++i) {
             printCard((((content[i])%13)+2));
@@ -123,37 +157,54 @@ public:
         }
         std::cout << '\n';
     }
+
+    /**
+     * Prints the first card in the dealers hand and an asterisk to represent the down-turned card
+     */
     void printDealer(){
         std::cout << ((content[0])%13)+2 << " *" << '\n';
     }
+
+    /**
+     * Adds a specific card to this hand
+     * @param card is the ID of the card
+     */
     void addCardToHand(int card){
         content[length] = card;
         length++;
     }
+    /**
+     * Sets the length of this hand to zero to make it empty
+     */
     void resetHand(){
         length = 0;
     }
 };
 
 void game(Deck* deck){
-    string reply;
+    string reply; //Used to hold user input
 
+    //One hand each for the dealer and player
     Hand* dealerCards = (Hand*)malloc(sizeof(Hand));
     Hand* playerCards = (Hand*)malloc(sizeof(Hand));
 
+    //While the deck is full enough to not be predictable
     while (deck->getIndex() < 26){
+
+        //Prints "Dealer: " Followed by the first card and an asterisk to represent the downturned card
         std::cout << "Dealer: ";
         dealerCards->addCardToHand(deck->getCard());
         dealerCards->addCardToHand(deck->getCard());
         dealerCards->printDealer();
 
-
+        //Prints "Player: " Followed by both of the players cards
         std::cout << "Player: ";
         playerCards->addCardToHand(deck->getCard());
         playerCards->addCardToHand(deck->getCard());
         playerCards->printHand();
         std::cout << "\n";
 
+        //Check if the value of either hand is 21 (player gets priority)
         if(playerCards->checkValue() == 21){
             std::cout << "You got blackjack!";
             return;
@@ -162,6 +213,7 @@ void game(Deck* deck){
             return;
         }
 
+        //While the player has not lost, ask if they want another card
         while (playerCards->checkValue() < 21) {
             reply = "";
             std::cout << "Hit or stay? (h/s)\n";
@@ -171,14 +223,19 @@ void game(Deck* deck){
                 std::cout << "Player: ";
                 playerCards->printHand();
             } else if(reply[0] == 's' || reply[0] == 'S'){
+                //Player chose to not get another card
                 break;
             } else{
                 std::cout << "Invalid entry\n";
             }
         }
+
+        //Dealer must hit until the value of their hand is under 16
         while (dealerCards->checkValue() < 16){
             dealerCards->addCardToHand(deck->getCard());
         }
+
+        //Check the results
 
         int dealerValue = dealerCards->checkValue();
         int playerValue = playerCards->checkValue();
@@ -203,12 +260,19 @@ void game(Deck* deck){
             playerCards->printHand();
             dealerCards->printHand();
         }
+
+        //Wait 1 second to let the player see the results and not get confused by sudden change
         sleep(1);
+
+        //Reset both hands
         playerCards->resetHand();
         dealerCards->resetHand();
 
+        //Draw a line to separate each play
         std::cout << "*********************************************************************\n";
     }
+
+    //New lines and free both hands
     std::cout << "\n\n\n";
     free(dealerCards);
     free(playerCards);
